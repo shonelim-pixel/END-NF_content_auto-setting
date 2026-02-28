@@ -1,0 +1,341 @@
+# ============================================================
+# END NF 자동 콘텐츠 생산 시스템 - 소스 설정
+# ============================================================
+# 각 요일별 콘텐츠 소스 + 주간 특집 소스 정의
+
+# ── 월요일: NF 관련 최신 국제 논문/연구 ──
+monday_research:
+  sources:
+    - name: "PubMed"
+      type: "api"
+      base_url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
+      search_terms:
+        - "neurofibromatosis"
+        - "neurofibromatosis type 1"
+        - "neurofibromatosis type 2"
+        - "NF1 gene therapy"
+        - "schwannomatosis"
+        - "plexiform neurofibroma treatment"
+        - "selumetinib neurofibromatosis"
+        - "MEK inhibitor NF1"
+      max_results: 10
+      sort: "date"
+      days_back: 30
+
+    - name: "Google Scholar (via RSS)"
+      type: "rss"
+      urls:
+        - "https://scholar.google.com/scholar?as_sdt=0,5&q=neurofibromatosis&hl=en&as_vis=1&scisbd=1"
+      note: "Google Scholar에서 직접 RSS 미제공 - SerpAPI 또는 스크래핑 필요"
+
+    - name: "PubMed Central (PMC)"
+      type: "api"
+      base_url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
+      database: "pmc"
+      search_terms:
+        - "neurofibromatosis"
+      max_results: 5
+      days_back: 30
+
+# ── 화요일: 환자/가족 응원 메시지 + 감동 이야기 ──
+tuesday_patient_stories:
+  sources:
+    - name: "CTF Stories of NF"
+      type: "web_scrape"
+      url: "https://www.ctf.org/storiesofnf/"
+      selectors:
+        story_list: ".story-card, .post-card, article"
+      frequency: "daily"
+
+    - name: "Reddit r/neurofibromatosis"
+      type: "reddit_api"
+      subreddit: "neurofibromatosis"
+      sort: "top"
+      time_filter: "week"
+      filter_keywords:
+        positive:
+          - "hope"
+          - "success"
+          - "grateful"
+          - "milestone"
+          - "achievement"
+          - "positive"
+          - "happy"
+          - "love"
+          - "support"
+          - "strength"
+        negative:
+          - "suicide"
+          - "hopeless"
+          - "give up"
+      max_results: 10
+
+    - name: "NF Network Patient Stories"
+      type: "web_scrape"
+      url: "https://www.nfnetwork.org/understanding-nf/personal-stories/"
+      frequency: "weekly"
+
+# ── 수요일: 해외 NF 커뮤니티 소식 ──
+wednesday_community:
+  sources:
+    - name: "CTF News"
+      type: "web_scrape"
+      url: "https://www.ctf.org/news/"
+      frequency: "daily"
+
+    - name: "CTF Events"
+      type: "web_scrape"
+      url: "https://www.ctf.org/events/"
+      frequency: "weekly"
+
+    - name: "NF Network (Europe)"
+      type: "web_scrape"
+      url: "https://www.nfnetwork.org/"
+      frequency: "weekly"
+
+    - name: "Neurofibromatosis Society UK"
+      type: "web_scrape"
+      url: "https://www.nfsociety.co.uk/"
+      note: "영국 NF 커뮨니티 소식"
+      frequency: "weekly"
+
+    - name: "Shine a Light NF"
+      type: "web_scrape"
+      url: "https://www.shinealightnf.org/"
+      frequency: "weekly"
+
+    - name: "Google News - NF Community"
+      type: "rss"
+      urls:
+        - "https://news.google.com/rss/search?q=neurofibromatosis+community&hl=en&gl=US&ceid=US:en"
+        - "https://news.google.com/rss/search?q=NF+foundation+awareness&hl=en&gl=US&ceid=US:en"
+      max_results: 10
+
+# ── 목요일: NF 치료제 개발 동향 / 임상시험 ──
+thursday_treatment:
+  sources:
+    - name: "ClinicalTrials.gov API v2"
+      type: "api"
+      base_url: "https://clinicaltrials.gov/api/v2/studies"
+      search_terms:
+        - "neurofibromatosis"
+        - "NF1 plexiform"
+        - "schwannomatosis"
+        - "selumetinib"
+        - "MEK inhibitor NF"
+      filters:
+        status:
+          - "RECRUITING"
+          - "NOT_YET_RECRUITING"
+          - "ACTIVE_NOT_RECRUITING"
+      max_results: 20
+      sort: "LastUpdatePostDate"
+
+    - name: "Google News - NF Treatment"
+      type: "rss"
+      urls:
+        - "https://news.google.com/rss/search?q=neurofibromatosis+treatment+drug&hl=en&gl=US&ceid=US:en"
+        - "https://news.google.com/rss/search?q=selumetinib+koselugo&hl=en&gl=US&ceid=US:en"
+        - "https://news.google.com/rss/search?q=NF1+clinical+trial&hl=en&gl=US&ceid=US:en"
+      max_results: 10
+
+    - name: "FDA Drug Approvals"
+      type: "web_scrape"
+      url: "https://www.fda.gov/drugs/new-drugs-fda-cders-new-molecular-entities-and-new-therapeutic-biological-products"
+      filter_keywords:
+        - "neurofibromatosis"
+        - "selumetinib"
+        - "koselugo"
+        - "neurofibroma"
+      frequency: "weekly"
+
+    - name: "CTF Clinical Drug Pipeline"
+      type: "web_scrape"
+      url: "https://www.ctf.org/clinical-drug-pipeline/"
+      frequency: "weekly"
+
+# ── 금요일: 희귀질환 정책/제도 관련 뉴스 ──
+friday_policy:
+  sources:
+    - name: "Google News - 희귀질환 정책 (한국)"
+      type: "rss"
+      urls:
+        - "https://news.google.com/rss/search?q=%ED%9D%AC%EA%B7%80%EC%A7%88%ED%99%98+%EC%A0%95%EC%B1%85&hl=ko&gl=KR&ceid=KR:ko"
+        - "https://news.google.com/rss/search?q=%EC%8B%A0%EA%B2%BD%EC%84%AC%EC%9C%A0%EC%A2%85&hl=ko&gl=KR&ceid=KR:ko"
+        - "https://news.google.com/rss/search?q=%ED%9D%AC%EA%B7%80%EC%A7%88%ED%99%98+%EA%B1%B4%EA%B0%95%EB%B3%B4%ED%97%98&hl=ko&gl=KR&ceid=KR:ko"
+      max_results: 10
+
+    - name: "보건복지부 정책 뉴스"
+      type: "web_scrape"
+      url: "https://www.mohw.go.kr/board.es?mid=a10503000000&bid=0027"
+      filter_keywords:
+        - "희귀질환"
+        - "희귀난치"
+        - "유전자"
+        - "건강보험"
+        - "의료비"
+      frequency: "daily"
+
+    - name: "한국희귀질환재단"
+      type: "web_scrape"
+      url: "https://www.krdf.org/"
+      frequency: "weekly"
+
+    - name: "건강보험심사평가원"
+      type: "web_scrape"
+      url: "https://www.hira.or.kr/bbsDummy.do?pgmid=HIRAA020041000000"
+      filter_keywords:
+        - "희귀"
+        - "유전"
+        - "신약"
+      frequency: "weekly"
+
+    - name: "NORD (US Rare Disease Policy)"
+      type: "rss"
+      urls:
+        - "https://rarediseases.org/feed/"
+      max_results: 5
+
+# ── 토요일: NF 환자 일상 공유 / 힐링 콘텐츠 ──
+saturday_healing:
+  sources:
+    - name: "Reddit r/neurofibromatosis (Healing)"
+      type: "reddit_api"
+      subreddit: "neurofibromatosis"
+      sort: "top"
+      time_filter: "week"
+      filter_keywords:
+        positive:
+          - "daily life"
+          - "healing"
+          - "art"
+          - "creative"
+          - "exercise"
+          - "meditation"
+          - "mindfulness"
+          - "self-care"
+          - "wellness"
+      max_results: 10
+
+    - name: "Instagram #neurofibromatosis (참고용)"
+      type: "manual_reference"
+      hashtags:
+        - "#neurofibromatosis"
+        - "#nfwarrior"
+        - "#nfawareness"
+        - "#endnf"
+        - "#nf1"
+        - "#invisibleillness"
+      note: "Instagram API 접근 제한 - 수동 참고 또는 CrowdTangle 활용"
+
+    - name: "YouTube NF Patient Vlogs"
+      type: "manual_reference"
+      channels:
+        - "NF Network"
+        - "Children's Tumor Foundation"
+      search_terms:
+        - "neurofibromatosis daily life"
+        - "NF patient story vlog"
+        - "living with NF"
+
+# ── 일요일: 주간 하이라이트 + 다음 주 예고 ──
+sunday_highlight:
+  type: "auto_generated"
+  description: "월~토 콘텐츠 자동 요약 + 다음 주 콘텐츠 예고"
+  input: "weekly_content_archive"
+
+# ── 비정기 특집: 이범희 교수님 / 유전병 ──
+special_professor_lee:
+  trigger: "환자 관련 이야기가 부족할 때"
+  sources:
+    - name: "PubMed - 이범희 교수"
+      type: "api"
+      base_url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
+      search_terms:
+        - "Lee Beom Hee[Author] neurofibromatosis"
+        - "Lee BH[Author] Seoul National University genetics"
+        - "Lee Beom Hee[Author] rare disease"
+        - "Lee BH[Author] pediatric genetics Korea"
+      max_results: 10
+
+    - name: "KoreaMed - 한국 NF 논문"
+      type: "web_scrape"
+      url: "https://koreamed.org/"
+      search_terms:
+        - "neurofibromatosis Korea"
+        - "이범희 유전"
+      frequency: "weekly"
+
+    - name: "대한유전학회"
+      type: "web_scrape"
+      url: "https://www.genetics.or.kr/"
+      frequency: "monthly"
+
+    - name: "서울대병원 소아과"
+      type: "web_scrape"
+      url: "https://www.snuh.org/"
+      search_terms:
+        - "유전학"
+        - "희귀질환"
+      frequency: "monthly"
+
+# ── ⭐ 핵심 참고처 (모든 요일 공통) ──
+primary_references:
+  - name: "레어노트 (RareNote)"
+    type: "web_scrape"
+    urls:
+      main: "https://rarenote.io/"
+      news: "https://rarenote.io/news"
+      contents: "https://rarenote.io/contents"
+    description: |
+      휴먼스케이프 운영 국내 최대 희귀질환 정보 플랫폼.
+      글로벌 뉴스 한글 번역, 임상시험 현황, 질환 정보,
+      환자 모임, 복지/정책 정보, 뉴스레터(Letter R) 제공.
+      매주 의학 소식 정리 콘텐츠 발행.
+    use_cases:
+      - "금요일: 희귀질환 정책/복지 정보 (산정특례, 의료비 지원 등)"
+      - "월요일: 글로벌 연구 뉴스 한글 참고"
+      - "목요일: 임상시험 현황 크로스체크"
+      - "화요일: 환자 모임/커뮤니티 소식"
+      - "전체: 콘텐츠 톤앤매너 참고 (환자 눈높이 쉬운 설명)"
+    frequency: "daily"
+
+  - name: "CTF (Children's Tumor Foundation)"
+    type: "web_scrape"
+    urls:
+      main: "https://www.ctf.org/"
+      news: "https://www.ctf.org/news/"
+      stories: "https://www.ctf.org/storiesofnf/"
+      pipeline: "https://www.ctf.org/clinical-drug-pipeline/"
+      research: "https://www.ctf.org/researchportfolio/"
+      resources: "https://www.ctf.org/resource-library/"
+      events: "https://www.ctf.org/events/"
+    description: |
+      세계 최대 NF 전문 비영리 재단. NF 연구의 최대 민간 펀더.
+      환자 스토리, 최신 뉴스, 임상시험 파이프라인, 연구 포트폴리오,
+      교육 자료, NF Summit 등 이벤트 정보 제공.
+      70+ NF 클리닉 네트워크, NF Registry 운영.
+    use_cases:
+      - "월요일: 최신 연구 동향 및 CTF 연구 포트폴리오"
+      - "화요일: Stories of NF 환자 이야기"
+      - "수요일: CTF 뉴스 및 이벤트"
+      - "목요일: Clinical Drug Pipeline 치료제 현황"
+      - "토요일: 환자 자원 및 교육 자료"
+    frequency: "daily"
+
+# ── 전역 설정 ──
+global_settings:
+  content_language: "ko"
+  timezone: "Asia/Seoul"
+  schedule:
+    daily_generation_time: "06:00"
+    review_deadline: "09:00"
+  notification:
+    channel: "telegram"
+    backup_channel: "email"
+  image_prompt:
+    style: "warm, hopeful, medical illustration, soft colors, supportive"
+    negative_prompt: "scary, dark, sad, depressing, gore, blood"
+  archive:
+    location: "github_repo"
+    retention_days: 365
