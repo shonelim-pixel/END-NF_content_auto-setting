@@ -33,6 +33,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+                      SMTP_USER: ${{ secrets.SMTP_USER }}
+                                  SMTP_PASS: ${{ secrets.SMTP_PASS }}
         run: |
           if [ -n "${{ github.event.inputs.day }}" ]; then
             python daily_runner.py --day ${{ github.event.inputs.day }}
