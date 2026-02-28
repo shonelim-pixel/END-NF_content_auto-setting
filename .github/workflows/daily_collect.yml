@@ -53,6 +53,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
+                    NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
         run: |
           if [ -n "${{ github.event.inputs.day }}" ]; then
             python notification_sender.py --day ${{ github.event.inputs.day }} --channel all
