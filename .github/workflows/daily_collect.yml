@@ -1,0 +1,41 @@
+name: END NF Daily Content
+
+on:
+  schedule:
+    - cron: '0 21 * * *'  # UTC 21:00 = KST 06:00
+  workflow_dispatch:
+    inputs:
+      day:
+        description: 'Day override (mon/tue/wed/thu/fri/sat/sun)'
+        required: false
+        default: ''
+
+jobs:
+  collect-and-generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run daily pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+        run: |
+          if [ -n "${{ github.event.inputs.day }}" ]; then
+            python daily_runner.py --day ${{ github.event.inputs.day }}
+          else
+            python daily_runner.py
+          fi
