@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run daily pipeline
+      - name: Run daily pipeline (data collection)
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -40,4 +40,17 @@ jobs:
             python daily_runner.py --day ${{ github.event.inputs.day }}
           else
             python daily_runner.py
+          fi
+
+      - name: Send notifications (Telegram + Email)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+        run: |
+          if [ -n "${{ github.event.inputs.day }}" ]; then
+            python notification_sender.py --day ${{ github.event.inputs.day }} --channel all
+          else
+            python notification_sender.py --channel all
           fi
