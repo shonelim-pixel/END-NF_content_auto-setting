@@ -84,7 +84,7 @@ DAY_PLANS = {
     "thu": {
         "title": "💊 목요일: NF 치료제 개발 / 임상시험",
         "tasks": [
-            {"type": "clinical_trials", "params": {"max_results": 15}},
+            {"type": "clinical_trials", "params": {"max_results": 15, "days_back": 30}},
             {"type": "news", "params": {"categories": ["treatment", "ctf"]}},
         ],
     },
@@ -199,6 +199,10 @@ class DailyOrchestrator:
                 "status": item.get("status", ""),
                 "phase": item.get("phase", []),
                 "sponsor": item.get("sponsor", ""),
+                "is_new_this_week": item.get("is_new_this_week", False),
+                "last_update": item.get("last_update", ""),
+                "start_date": item.get("start_date", ""),
+                "nct_id": item.get("nct_id", ""),
             })
 
         elif source_type == "news":
@@ -218,6 +222,8 @@ class DailyOrchestrator:
                 "url": item.get("url", ""),
                 "language": "en",
                 "positivity_score": item.get("positivity_score", 0),
+                "pub_date": item.get("pub_date", "") or item.get("created_utc", ""),
+                "source_name": item.get("source_name", "") or item.get("subreddit", ""),
             })
 
         # NF 관련성 점수 계산
@@ -241,6 +247,10 @@ class DailyOrchestrator:
         for kw in medium_keywords:
             if kw in text:
                 score += 1
+
+        # 최근 7일 신규 임상시험에 가산점
+        if item.get("is_new_this_week"):
+            score += 5
 
         return min(score, 10)
 

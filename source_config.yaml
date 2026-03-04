@@ -20,7 +20,7 @@ monday_research:
         - "MEK inhibitor NF1"
       max_results: 10
       sort: "date"
-      days_back: 30
+      days_back: 7
 
     - name: "Google Scholar (via RSS)"
       type: "rss"
@@ -35,7 +35,7 @@ monday_research:
       search_terms:
         - "neurofibromatosis"
       max_results: 5
-      days_back: 30
+      days_back: 7
 
 # ── 화요일: 환자/가족 응원 메시지 + 감동 이야기 ──
 tuesday_patient_stories:

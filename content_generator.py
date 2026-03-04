@@ -53,6 +53,14 @@ STYLE_GUIDE = """
 6. 희망적이고 긍정적인 톤 유지
 7. 출처를 자연스럽게 본문에 녹여서 표기
 
+### ⚠️ 날짜·출처 필수 표기 규칙 (매우 중요!)
+- 모든 연구, 뉴스, 임상시험 소식에는 반드시 **발표/게시 날짜**를 함께 적어야 합니다
+- 예: "2026년 2월 발표된 연구에 따르면...", "지난 3월 1일 CTF에서 발표한 소식으로는..."
+- 출처(저널명, 매체명, 기관명)도 반드시 자연스럽게 본문에 포함해야 합니다
+- 예: "Nature Medicine에 실린 연구", "CTF 공식 홈페이지에 따르면", "레어노트에서 전한 바에 따르면"
+- 날짜가 없으면 독자가 과거 이야기를 최신 소식으로 오해할 수 있으므로, 반드시 시점을 명시해주세요
+- 수집 데이터에 날짜(📅)와 출처 정보가 함께 제공됩니다. 반드시 활용하세요
+
 ### 문체
 - 존댓말 사용 (~합니다, ~해요)
 - 따뜻하고 신뢰감 있는 톤
@@ -97,7 +105,8 @@ DAY_PROMPTS = {
 1. 가장 의미 있는 연구 1~2개를 선정해서 중심 내용으로 작성
 2. 환자/보호자가 "이게 나한테 어떤 의미인지" 바로 이해할 수 있게
 3. 의학 용어는 쉽게 풀어서 설명
-4. "END NF 션입니다"로 시작, 따뜻한 마무리""",
+4. "END NF 션입니다"로 시작, 따뜻한 마무리
+5. ⚠️ 각 연구/논문의 발표 날짜와 저널명(출처)을 본문에 반드시 포함 (예: "2026년 2월 Nature Medicine에 발표된 연구에 따르면...")""",
     },
 
     "tue": {
@@ -125,7 +134,8 @@ DAY_PROMPTS = {
 1. 가장 감동적이고 희망적인 이야기 1개를 중심으로
 2. 해외 스토리는 한국 환우 가족이 공감할 수 있게 재구성
 3. 아이 관련 이야기는 걱정보다 사랑과 행복 메시지 강조
-4. "END NF 션입니다"로 시작, 따뜻한 응원으로 마무리""",
+4. "END NF 션입니다"로 시작, 따뜻한 응원으로 마무리
+5. ⚠️ 이야기의 출처(CTF, Reddit 등)를 자연스럽게 언급 (예: "CTF에 소개된 한 가족의 이야기입니다")""",
     },
 
     "wed": {
@@ -151,7 +161,8 @@ DAY_PROMPTS = {
 1. 가장 의미 있는 해외 소식 1~2개 중심
 2. 한국 NF 환우와의 연결고리를 자연스럽게 만들어주세요
 3. CTF 등 해외 단체 활동을 "우리의 든든한 동맹"으로 소개
-4. "END NF 션입니다"로 시작""",
+4. "END NF 션입니다"로 시작
+5. ⚠️ 각 소식의 발표 날짜와 출처(CTF, NF Network 등)를 본문에 반드시 포함""",
     },
 
     "thu": {
@@ -175,12 +186,17 @@ DAY_PROMPTS = {
 [수집된 데이터]
 {collected_data}
 
+⚡ 중요: 데이터 중 "(🆕 이번 주 신규/업데이트)"로 표시된 임상시험이 있다면,
+해당 항목을 글의 첫 번째 주제로 다루고 "이번 주 새로운 소식"으로 강조해주세요.
+신규 항목이 없으면 기존 진행 중인 임상시험 현황을 안내하면 됩니다.
+
 요구사항:
-1. 가장 진전된/주목할 만한 치료제 또는 임상시험 1~2개 중심
+1. 🆕 표시된 신규 임상시험을 최우선으로, 나머지는 주요 진전 중심
 2. 임상시험 단계를 환자가 이해할 수 있게 쉽게 설명
 3. 과도한 기대 없이 현실적이되 희망적으로
 4. 한국 환자에게의 의미/접근성도 자연스럽게 언급
-5. "END NF 션입니다"로 시작""",
+5. "END NF 션입니다"로 시작
+6. ⚠️ 임상시험의 최종 업데이트 날짜, 스폰서(기관명), ClinicalTrials.gov 등록번호(NCT)를 본문에 반드시 포함""",
     },
 
     "fri": {
@@ -208,7 +224,8 @@ DAY_PROMPTS = {
 1. 환자에게 가장 실질적으로 도움이 되는 정책/제도 뉴스 중심
 2. "이 정책이 나에게 어떤 혜택이 있는지" 구체적으로
 3. 레어노트 등 참고처 자연스럽게 언급
-4. "END NF 션입니다"로 시작""",
+4. "END NF 션입니다"로 시작
+5. ⚠️ 정책/뉴스의 발표 날짜와 출처(보건복지부, 레어노트, NORD 등)를 본문에 반드시 포함""",
     },
 
     "sat": {
@@ -236,7 +253,8 @@ DAY_PROMPTS = {
 1. 주말에 어울리는 가볍고 따뜻한 톤
 2. 환자의 일상이 특별하고 소중하다는 메시지
 3. 실천 가능한 자기관리/힐링 팁 자연스럽게 포함
-4. "END NF 션입니다"로 시작""",
+4. "END NF 션입니다"로 시작
+5. ⚠️ 참고한 사례나 팁의 출처를 자연스럽게 언급""",
     },
 
     "sun": {
@@ -262,7 +280,8 @@ DAY_PROMPTS = {
 요구사항:
 1. 이번 주 가장 의미 있었던 소식 3~5개 간결하게 정리
 2. 다음 주 예고 (예정된 행사, 기대되는 소식 등)
-3. "END NF 션입니다"로 시작, "다음 주도 함께해요"로 마무리""",
+3. "END NF 션입니다"로 시작, "다음 주도 함께해요"로 마무리
+4. ⚠️ 각 소식에 날짜와 출처를 간략히 포함 (예: "2월 28일 CTF 발표 - ...")""",
     },
 }
 
@@ -354,18 +373,27 @@ class ContentGenerator:
                 journal = item.get("journal", "")
                 authors = ", ".join(item.get("authors", [])[:3])
                 pub_date = item.get("pub_date", "")
-                extra = f"  저널: {journal} | 저자: {authors} | 날짜: {pub_date}"
+                extra = f"  📅 날짜: {pub_date or '미확인'}\n  📰 출처: {journal} | 저자: {authors}"
             elif source == "clinical_trial":
                 status = item.get("status", "")
                 phase = item.get("phase", [])
                 sponsor = item.get("sponsor", "")
-                extra = f"  상태: {status} | 단계: {phase} | 스폰서: {sponsor}"
+                last_update = item.get("last_update", "")
+                start_date = item.get("raw_data", {}).get("start_date", "")
+                is_new = item.get("is_new_this_week", False)
+                new_tag = " (🆕 이번 주 신규/업데이트)" if is_new else ""
+                extra = f"  📅 최종업데이트: {last_update or '미확인'} | 시작일: {start_date or '미확인'}\n  📰 출처: ClinicalTrials.gov | 스폰서: {sponsor}\n  상태: {status} | 단계: {phase}{new_tag}"
             elif source == "news":
                 source_name = item.get("source_name", "")
-                extra = f"  출처: {source_name}"
+                pub_date = item.get("pub_date", "")
+                extra = f"  📅 날짜: {pub_date or '미확인'}\n  📰 출처: {source_name or '미확인'}"
             elif source == "patient_story":
                 positivity = item.get("positivity_score", 0)
-                extra = f"  긍정도: {positivity}/10"
+                pub_date = item.get("pub_date", "")
+                source_name = item.get("source_name", "")
+                date_line = f"📅 날짜: {pub_date}" if pub_date else ""
+                source_line = f"📰 출처: {source_name}" if source_name else "📰 출처: 해외 NF 커뮤니티"
+                extra = f"  {date_line}\n  {source_line} | 긍정도: {positivity}/10" if date_line else f"  {source_line} | 긍정도: {positivity}/10"
 
             entry = f"[{i}] ({source}) {title}\n  요약: {summary}\n  URL: {url}"
             if extra:

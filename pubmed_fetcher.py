@@ -80,7 +80,7 @@ class PubMedFetcher:
         params["email"] = "endnf.content@gmail.com"
         return "&".join(f"{k}={quote(str(v))}" for k, v in params.items())
 
-    def search(self, query: str, max_results: int = 10, days_back: int = 30) -> list:
+    def search(self, query: str, max_results: int = 10, days_back: int = 7) -> list:
         """
         PubMed 검색 후 PMID 리스트 반환
 
@@ -255,7 +255,7 @@ class PubMedFetcher:
             return []
         return self.fetch_details(pmids)
 
-    def fetch_nf_latest(self, days_back: int = 30, max_per_query: int = 5) -> dict:
+    def fetch_nf_latest(self, days_back: int = 7, max_per_query: int = 5) -> dict:
         """
         모든 NF 관련 쿼리로 최신 논문 수집
 
@@ -321,7 +321,7 @@ def save_results(data: dict | list, filename: str):
 
 def main():
     parser = argparse.ArgumentParser(description="END NF PubMed 논문 수집기")
-    parser.add_argument("--days", type=int, default=30, help="최근 N일 이내 (기본: 30)")
+    parser.add_argument("--days", type=int, default=7, help="최근 N일 이내 (기본: 7)")
     parser.add_argument("--max", type=int, default=5, help="쿼리당 최대 결과 수 (기본: 5)")
     parser.add_argument("--query", type=str, default="", help="특정 검색어 (미지정시 전체 검색)")
     parser.add_argument("--professor", action="store_true", help="이범희 교수님 논문 수집")
