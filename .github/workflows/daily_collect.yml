@@ -1,62 +1,217 @@
-name: END NF Daily Content
+# ============================================================
+# END NF 콘텐츠 시스템 v2 - GitHub Actions 파이프라인
+# ============================================================
+# 주 2회 실행: 화요일(story) + 금요일(info)
+# KST 06:00 = UTC 21:00 (전날)
+# UTC 월요일 21:00 = KST 화요일 06:00
+# UTC 목요일 21:00 = KST 금요일 06:00
+
+name: END NF Content Pipeline v2
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # UTC 21:00 = KST 06:00
+    - cron: '0 21 * * 1,4'  # UTC Mon,Thu 21:00 = KST Tue,Fri 06:00
   workflow_dispatch:
     inputs:
+      content_type:
+        description: '콘텐츠 타입 (story/info/welfare/education, 비워두면 자동 감지)'
+        required: false
+        default: ''
+      rotation_week:
+        description: '2회차 주차 (1~4, info 타입일 때만 사용)'
+        required: false
+        default: ''
+      welfare_topic:
+        description: '복지 가이드 토픽 번호 (1~12, welfare 타입일 때만 사용)'
+        required: false
+        default: ''
+      skip_notify:
+        description: '알림 전송 건너뛰기'
+        required: false
+        type: boolean
+        default: false
       day:
-        description: 'Day override (mon/tue/wedthu/fri/sat/sun)'
+        description: '[호환용] 요일 (tue/fri → story/info로 자동 변환)'
         required: false
         default: ''
 
+env:
+  NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+  TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+
 jobs:
-  collect-and-generate:
+  content-pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+          cache: 'pip'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Step 1 - Collect data
-        env:
-          NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+      - name: Create directories
+        run: mkdir -p data/archive output logs
+
+      - name: Determine content type
+        id: config
         run: |
-          if [ -n "${{ github.event.inputs.day }}" ]; then
-            python daily_runner.py --day ${{ github.event.inputs.day }}
+          DATE=$(TZ='Asia/Seoul' date +%Y%m%d)
+          DOW=$(TZ='Asia/Seoul' date +%u)
+          echo "date=$DATE" >> $GITHUB_OUTPUT
+
+          if [ -n "${{ github.event.inputs.content_type }}" ]; then
+            TYPE="${{ github.event.inputs.content_type }}"
+          elif [ -n "${{ github.event.inputs.day }}" ]; then
+            DAY="${{ github.event.inputs.day }}"
+            case "$DAY" in
+              tue|tuesday) TYPE="story" ;;
+              fri|friday)  TYPE="info" ;;
+              *)           TYPE="info" ;;
+            esac
           else
-            python daily_runner.py
+            case "$DOW" in
+              2) TYPE="story" ;;
+              5) TYPE="info" ;;
+              *) TYPE="info" ;;
+            esac
           fi
 
-      - name: Step 2 - Generate content
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          if [ -n "${{ github.event.inputs.day }}" ]; then
-            python content_generator.py --day ${{ github.event.inputs.day }}
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+          echo "📋 콘텐츠 타입: $TYPE (KST $DATE)"
+
+          if [ -n "${{ github.event.inputs.rotation_week }}" ]; then
+            WEEK="${{ github.event.inputs.rotation_week }}"
           else
-            python content_generator.py
+            DAY_OF_MONTH=$(TZ='Asia/Seoul' date +%-d)
+            WEEK=$(( (DAY_OF_MONTH - 1) / 7 + 1 ))
+            if [ $WEEK -gt 4 ]; then WEEK=4; fi
+          fi
+          echo "week=$WEEK" >> $GITHUB_OUTPUT
+          echo "📅 주차: $WEEK"
+
+      - name: "📦 Step 1: Collect & orchestrate"
+        id: collect
+        run: |
+          ARGS="--type ${{ steps.config.outputs.type }}"
+
+          if [ "${{ steps.config.outputs.type }}" = "info" ]; then
+            ARGS="$ARGS --week ${{ steps.config.outputs.week }}"
           fi
 
-      - name: Step 3 - Send notifications
+          if [ "${{ steps.config.outputs.type }}" = "welfare" ] && [ -n "${{ github.event.inputs.welfare_topic }}" ]; then
+            ARGS="$ARGS --topic ${{ github.event.inputs.welfare_topic }}"
+          fi
+
+          echo "🚀 python daily_runner.py $ARGS"
+          python daily_runner.py $ARGS
+
+          DAILY_FILE="data/daily_${{ steps.config.outputs.date }}.json"
+          if [ -f "$DAILY_FILE" ]; then
+            TOTAL=$(python -c "import json; d=json.load(open('$DAILY_FILE')); print(d.get('total_items',0))")
+            echo "total_items=$TOTAL" >> $GITHUB_OUTPUT
+          else
+            echo "total_items=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: "✍️ Step 2: Generate content"
+        id: generate
+        if: env.ANTHROPIC_API_KEY != '' && steps.collect.outputs.total_items != '0'
+        run: |
+          ARGS="--type ${{ steps.config.outputs.type }}"
+
+          if [ "${{ steps.config.outputs.type }}" = "info" ]; then
+            ARGS="$ARGS --week ${{ steps.config.outputs.week }}"
+          fi
+
+          if [ "${{ steps.config.outputs.type }}" = "welfare" ] && [ -n "${{ github.event.inputs.welfare_topic }}" ]; then
+            ARGS="$ARGS --topic ${{ github.event.inputs.welfare_topic }}"
+          fi
+
+          echo "🚀 python content_generator.py $ARGS"
+          python content_generator.py $ARGS
+
+          POST_FILE=$(ls -t output/post_${{ steps.config.outputs.type }}_*.json 2>/dev/null | head -1)
+          if [ -n "$POST_FILE" ]; then
+            echo "generated=true" >> $GITHUB_OUTPUT
+          else
+            echo "generated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: "🎨 Step 3: Generate image prompts"
+        if: steps.generate.outputs.generated == 'true'
+        run: |
+          if [ -f "image_prompt_generator.py" ]; then
+            python image_prompt_generator.py --type ${{ steps.config.outputs.type }} --both || true
+          fi
+
+      - name: "📮 Step 4: Send notification"
+        if: >
+          steps.generate.outputs.generated == 'true' &&
+          env.TELEGRAM_BOT_TOKEN != '' &&
+          github.event.inputs.skip_notify != 'true'
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           NOTIFY_EMAIL: ${{ secrets.NOTIFY_EMAIL }}
         run: |
-          if [ -n "${{ github.event.inputs.day }}" ]; then
-            python notification_sender.py --day ${{ github.event.inputs.day }} --channel all
-          else
-            python notification_sender.py --channel all
+          if [ -f "notification_sender.py" ]; then
+            python notification_sender.py --type ${{ steps.config.outputs.type }} || true
           fi
+
+      - name: "🚨 Error notification"
+        if: failure() && env.TELEGRAM_BOT_TOKEN != ''
+        run: |
+          python -c "
+          try:
+              from notification_sender import NotificationManager
+              mgr = NotificationManager()
+              mgr.send_error_alert('GitHub Actions 파이프라인 실패', '${{ steps.config.outputs.type }}')
+          except Exception:
+              pass
+          " || true
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: endnf-${{ steps.config.outputs.type }}-${{ steps.config.outputs.date }}
+          path: |
+            data/
+            output/
+            logs/
+          retention-days: 30
+
+      - name: Commit data & history
+        if: steps.collect.outputs.total_items != '0'
+        run: |
+          git config user.name "END NF Bot"
+          git config user.email "bot@endnf.org"
+          git add data/ output/ content_history.json || true
+          git diff --staged --quiet || git commit -m "📄 [${{ steps.config.outputs.type }}] ${{ steps.collect.outputs.total_items }}건 수집+생성 (${{ steps.config.outputs.date }})"
+          git push || true
+
+      - name: Pipeline summary
+        if: always()
+        run: |
+          TYPE_LABEL=""
+          case "${{ steps.config.outputs.type }}" in
+            story)     TYPE_LABEL="💛 우리의 이야기" ;;
+            info)      TYPE_LABEL="💡 알아두면 좋은 소식 (W${{ steps.config.outputs.week }})" ;;
+            welfare)   TYPE_LABEL="📋 복지 가이드" ;;
+            education) TYPE_LABEL="📚 교육 시리즈" ;;
+            *)         TYPE_LABEL="${{ steps.config.outputs.type }}" ;;
+          esac
+          echo "📊 END NF 파이프라인 v2 완료"
+          echo "  타입: $TYPE_LABEL"
+          echo "  수집: ${{ steps.collect.outputs.total_items }}건"
+          echo "  생성: ${{ steps.generate.outputs.generated || 'skipped' }}"
