@@ -1,0 +1,27 @@
+{
+  "sent_items": [],
+  "backlog": [],
+  "evergreen_index": {
+    "eg-001": { "last_used": null },
+    "eg-002": { "last_used": null },
+    "eg-003": { "last_used": null },
+    "eg-004": { "last_used": null },
+    "eg-005": { "last_used": null },
+    "eg-006": { "last_used": null },
+    "eg-007": { "last_used": null },
+    "eg-008": { "last_used": null },
+    "eg-009": { "last_used": null },
+    "eg-010": { "last_used": null }
+  },
+  "education_series_index": {
+    "edu-001": { "topic": "MEK 억제제란?", "last_used": null },
+    "edu-002": { "topic": "임상시험 단계 이해하기", "last_used": null },
+    "edu-003": { "topic": "AI가 신약을 찾는다고요?", "last_used": null },
+    "edu-004": { "topic": "신약이 환자에게 오기까지", "last_used": null },
+    "edu-005": { "topic": "CRISPR 유전자 가위란?", "last_used": null },
+    "edu-006": { "topic": "RAS 경로와 NF1", "last_used": null },
+    "edu-007": { "topic": "유전자 치료의 현재와 미래", "last_used": null },
+    "edu-008": { "topic": "희귀질환 신약 개발의 어려움", "last_used": null }
+  },
+  "rotation_log": {}
+}
