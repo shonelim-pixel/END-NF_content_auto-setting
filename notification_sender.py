@@ -496,8 +496,10 @@ class NotificationManager:
 # ============================================================
 def main():
     parser = argparse.ArgumentParser(description="END NF 알림 전송기")
+    parser.add_argument("--type", type=str, default="",
+                        help="콘텐츠 타입 (story/info/welfare/education)")
     parser.add_argument("--day", type=str, default="",
-                        help="요일 (해당 요일 결과 파일 자동 탐색)")
+                        help="[호환용] 요일 (tue→story, fri→info로 자동 변환)")
     parser.add_argument("--input", type=str, default="",
                         help="전송할 포스팅 파일 경로")
     parser.add_argument("--channel", type=str, default="all",
@@ -506,6 +508,11 @@ def main():
     parser.add_argument("--test", action="store_true",
                         help="테스트 메시지 전송")
     args = parser.parse_args()
+
+    # 하위 호환: --day → --type 변환
+    if not args.type and args.day:
+        day_to_type = {"tue": "story", "tuesday": "story", "fri": "info", "friday": "info"}
+        args.type = day_to_type.get(args.day.lower(), "info")
 
     manager = NotificationManager()
     channels = None if args.channel == "all" else [args.channel]
@@ -520,12 +527,29 @@ def main():
     if args.input:
         with open(args.input, "r", encoding="utf-8") as f:
             post_data = json.load(f)
-    elif args.day:
+    elif args.type or args.day:
         # 오늘 날짜 기준 파일 탐색
         date_str = datetime.now().strftime("%Y%m%d")
+        search_key = args.type or args.day
         candidates = [
-            os.path.join(OUTPUT_DIR, f"post_{args.day}_{date_str}.json"),
+            # v2: type 기반 파일명
+            os.path.join(OUTPUT_DIR, f"post_{search_key}_{date_str}.json"),
         ]
+        # v1 호환: day 기반 파일명도 탐색
+        if args.day and args.day != search_key:
+            candidates.append(
+                os.path.join(OUTPUT_DIR, f"post_{args.day}_{date_str}.json")
+            )
+        # 날짜 무관 최신 파일 탐색 (fallback)
+        if os.path.exists(OUTPUT_DIR):
+            type_files = sorted(
+                [f for f in os.listdir(OUTPUT_DIR)
+                 if f.startswith(f"post_{search_key}_") and f.endswith(".json")],
+                reverse=True,
+            )
+            if type_files:
+                candidates.append(os.path.join(OUTPUT_DIR, type_files[0]))
+
         for path in candidates:
             if os.path.exists(path):
                 with open(path, "r", encoding="utf-8") as f:
@@ -533,7 +557,7 @@ def main():
                 break
 
         if not post_data:
-            print(f"❌ 포스팅 파일을 찾을 수 없습니다: {args.day}")
+            print(f"❌ 포스팅 파일을 찾을 수 없습니다: {search_key}")
             print(f"   탐색 경로: {candidates}")
             return
     else:
