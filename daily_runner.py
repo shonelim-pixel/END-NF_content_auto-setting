@@ -54,7 +54,7 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
         logging.FileHandler(
-            os.path.join(LOG_DIR, f"daily_{datetime.now().strftime('%Y%m%d')}.log"),
+            os.path.join(LOG_DIR, f"daily_{datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d')}.log"),
             encoding="utf-8",
         ),
         logging.StreamHandler(),
@@ -640,7 +640,8 @@ class DailyOrchestrator:
         return result
 
     def _save_daily_result(self, content_type: str, result: dict):
-        date_str = datetime.now().strftime("%Y%m%d")
+        kst = timezone(timedelta(hours=9))
+        date_str = datetime.now(kst).strftime("%Y%m%d")
         filename = f"daily_{date_str}.json"
         filepath = os.path.join(DATA_DIR, filename)
         with open(filepath, "w", encoding="utf-8") as f:

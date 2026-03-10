@@ -18,7 +18,7 @@ import os
 import sys
 import json
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -601,7 +601,8 @@ END NF, 함께하면 이겨낼 수 있습니다 💙
 
     def _save_output(self, result: dict):
         """생성 결과 저장"""
-        date_str = datetime.now().strftime("%Y%m%d")
+        kst = timezone(timedelta(hours=9))
+        date_str = datetime.now(kst).strftime("%Y%m%d")
         content_type = result.get("content_type", "unknown")
         filename = f"post_{content_type}_{date_str}.json"
 
@@ -670,7 +671,8 @@ def main():
     if args.input:
         result = generator.generate_from_daily_file(args.input, content_type, **kwargs)
     else:
-        today_file = os.path.join(DATA_DIR, f"daily_{datetime.now().strftime('%Y%m%d')}.json")
+        kst = timezone(timedelta(hours=9))
+        today_file = os.path.join(DATA_DIR, f"daily_{datetime.now(kst).strftime('%Y%m%d')}.json")
         if os.path.exists(today_file):
             result = generator.generate_from_daily_file(today_file, content_type, **kwargs)
         else:

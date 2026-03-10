@@ -29,7 +29,7 @@ import json
 import argparse
 import smtplib
 import logging
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from pathlib import Path
@@ -529,7 +529,8 @@ def main():
             post_data = json.load(f)
     elif args.type or args.day:
         # 오늘 날짜 기준 파일 탐색
-        date_str = datetime.now().strftime("%Y%m%d")
+        kst = timezone(timedelta(hours=9))
+        date_str = datetime.now(kst).strftime("%Y%m%d")
         search_key = args.type or args.day
         candidates = [
             # v2: type 기반 파일명

@@ -20,7 +20,7 @@ import os
 import sys
 import json
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -553,7 +553,8 @@ class ImagePromptGenerator:
         """결과 저장"""
         if not filename:
             day = result.get("day", "unknown")
-            date_str = datetime.now().strftime("%Y%m%d")
+            kst = timezone(timedelta(hours=9))
+            date_str = datetime.now(kst).strftime("%Y%m%d")
             filename = f"image_prompts_{day}_{date_str}.json"
 
         filepath = os.path.join(OUTPUT_DIR, filename)
@@ -641,7 +642,8 @@ def main():
         for plat in platforms:
             results = generator.generate_all_days(plat, args.style)
             if not args.preview:
-                date_str = datetime.now().strftime("%Y%m%d")
+                kst = timezone(timedelta(hours=9))
+                date_str = datetime.now(kst).strftime("%Y%m%d")
                 filename = f"image_prompts_all_{plat}_{date_str}.json"
                 filepath = os.path.join(OUTPUT_DIR, filename)
                 with open(filepath, "w", encoding="utf-8") as f:
